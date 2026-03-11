@@ -1,4 +1,4 @@
-import { Clock, User, GripVertical, MessageSquare } from 'lucide-react';
+import { Clock, User, GripVertical, MessageSquare, FileText } from 'lucide-react';
 import type { Task, Member } from '../types';
 import { PRIORITY_CONFIG } from '../constants';
 
@@ -63,6 +63,7 @@ export default function TaskCard({ task, members, onDragStart, onClick }: TaskCa
         </div>
 
         <div className="flex items-center gap-2">
+          {task.spec && <span title="有規格書"><FileText size={12} className="text-purple-400" /></span>}
           {task.notes && <MessageSquare size={12} className="text-slate-400" />}
           {task.due_date && (
             <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-500' : ''}`}>

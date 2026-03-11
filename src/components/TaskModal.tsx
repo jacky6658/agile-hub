@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Trash2, Send, Clock, UserCheck, ArrowRight, MessageSquare, PlusCircle, Activity } from 'lucide-react';
+import { X, Save, Trash2, Send, Clock, UserCheck, ArrowRight, MessageSquare, PlusCircle, Activity, FileText, CheckSquare, ListChecks } from 'lucide-react';
 import type { Task, Member, Sprint, TaskActivity } from '../types';
 import { TaskStatus, Priority } from '../types';
 import { TASK_STATUS_CONFIG, PRIORITY_CONFIG } from '../constants';
@@ -39,7 +39,7 @@ function timeAgo(dateStr: string): string {
 
 export default function TaskModal({ task, members, sprints, isOpen, onClose, onSave, onDelete }: TaskModalProps) {
   const [form, setForm] = useState<Partial<Task>>({});
-  const [activePanel, setActivePanel] = useState<'edit' | 'activity'>('edit');
+  const [activePanel, setActivePanel] = useState<'edit' | 'spec' | 'activity'>('edit');
   const [activities, setActivities] = useState<TaskActivity[]>([]);
   const [comment, setComment] = useState('');
   const [loadingActivities, setLoadingActivities] = useState(false);
@@ -55,7 +55,8 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
         status: TaskStatus.TODO,
         priority: Priority.P2,
         labels: [],
-        notes: ''
+        notes: '',
+        spec: ''
       });
       setActivities([]);
     }
@@ -120,6 +121,16 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
                   className={`px-3 py-1 text-xs rounded-md transition-colors ${activePanel === 'edit' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   編輯
+                </button>
+                <button
+                  onClick={() => setActivePanel('spec')}
+                  className={`px-3 py-1 text-xs rounded-md transition-colors flex items-center gap-1 ${activePanel === 'spec' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <FileText size={12} />
+                  規格書
+                  {form.spec && (
+                    <span className="bg-purple-100 text-purple-600 text-[10px] px-1.5 rounded-full">✓</span>
+                  )}
                 </button>
                 <button
                   onClick={() => setActivePanel('activity')}
@@ -287,6 +298,65 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
                 />
               </div>
             </div>
+          ) : activePanel === 'spec' ? (
+            /* ===== Spec Panel — 規格書 / 執行步驟 ===== */
+            <div className="px-4 sm:px-6 py-4 space-y-4">
+              {/* 規格書提示 */}
+              <div className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <ListChecks size={20} className="text-purple-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-purple-800">規格書 / 執行步驟</h4>
+                  <p className="text-xs text-purple-600 mt-0.5">
+                    詳細描述這個任務要怎麼做、驗收標準是什麼。支援純文字格式。
+                  </p>
+                </div>
+              </div>
+
+              {/* Spec 編輯區 */}
+              <div>
+                <textarea
+                  value={form.spec || ''}
+                  onChange={e => setForm(f => ({ ...f, spec: e.target.value }))}
+                  rows={16}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none font-mono leading-relaxed"
+                  placeholder={`## 功能需求\n- 需求描述...\n\n## 執行步驟\n1. 第一步...\n2. 第二步...\n3. 第三步...\n\n## 驗收標準（AC）\n- [ ] 條件一\n- [ ] 條件二\n\n## 技術備註\n- API endpoint: ...\n- 相關檔案: ...`}
+                />
+              </div>
+
+              {/* 快捷模板按鈕 */}
+              {!form.spec && (
+                <div>
+                  <p className="text-xs text-slate-500 mb-2">快速套用模板：</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setForm(f => ({ ...f, spec: `## 功能需求\n\n\n## 執行步驟\n1. \n2. \n3. \n\n## 驗收標準（AC）\n- [ ] \n- [ ] \n\n## 技術備註\n` }))}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors"
+                    >
+                      <FileText size={12} /> 標準規格
+                    </button>
+                    <button
+                      onClick={() => setForm(f => ({ ...f, spec: `## Bug 描述\n\n\n## 重現步驟\n1. \n2. \n3. \n\n## 預期行為\n\n\n## 實際行為\n\n\n## 修復方案\n` }))}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+                    >
+                      <CheckSquare size={12} /> Bug 修復
+                    </button>
+                    <button
+                      onClick={() => setForm(f => ({ ...f, spec: `## API 規格\nEndpoint: \nMethod: \n\n## Request\n\`\`\`json\n{\n  \n}\n\`\`\`\n\n## Response\n\`\`\`json\n{\n  \n}\n\`\`\`\n\n## 測試案例\n1. \n2. \n` }))}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+                    >
+                      <ListChecks size={12} /> API 開發
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 字數統計 */}
+              {form.spec && (
+                <div className="text-right text-xs text-slate-400">
+                  {form.spec.length} 字 · {form.spec.split('\n').length} 行
+                </div>
+              )}
+            </div>
           ) : (
             /* ===== Activity Panel ===== */
             <div className="px-4 sm:px-6 py-4">
@@ -356,7 +426,7 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
             <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
               取消
             </button>
-            {activePanel === 'edit' && (
+            {(activePanel === 'edit' || activePanel === 'spec') && (
               <button
                 onClick={handleSave}
                 disabled={!form.title?.trim()}

@@ -64,6 +64,7 @@ export async function initDatabase() {
         due_date DATE,
         sort_order INTEGER DEFAULT 0,
         notes TEXT,
+        spec TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );

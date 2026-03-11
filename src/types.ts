@@ -84,6 +84,7 @@ export interface Task {
   due_date?: string | null;
   sort_order: number;
   notes?: string;
+  spec?: string;
   created_at: string;
   updated_at: string;
 }

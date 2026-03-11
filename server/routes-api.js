@@ -160,11 +160,11 @@ router.get('/tasks', async (req, res) => {
 
 router.post('/tasks', async (req, res) => {
   try {
-    const { project_id, sprint_id, title, description, status, priority, assignee_id, reporter_id, labels, estimated_hours, actual_hours, due_date, sort_order, notes } = req.body;
+    const { project_id, sprint_id, title, description, status, priority, assignee_id, reporter_id, labels, estimated_hours, actual_hours, due_date, sort_order, notes, spec } = req.body;
     const { rows } = await pool.query(
-      `INSERT INTO ah_tasks (project_id, sprint_id, title, description, status, priority, assignee_id, reporter_id, labels, estimated_hours, actual_hours, due_date, sort_order, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
-      [project_id, sprint_id, title, description, status || 'todo', priority || 'P2', assignee_id, reporter_id, labels || [], estimated_hours, actual_hours, due_date, sort_order || 0, notes]
+      `INSERT INTO ah_tasks (project_id, sprint_id, title, description, status, priority, assignee_id, reporter_id, labels, estimated_hours, actual_hours, due_date, sort_order, notes, spec)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+      [project_id, sprint_id, title, description, status || 'todo', priority || 'P2', assignee_id, reporter_id, labels || [], estimated_hours, actual_hours, due_date, sort_order || 0, notes, spec]
     );
     // 記錄建立活動
     const task = rows[0];
@@ -188,7 +188,7 @@ router.patch('/tasks/:id', async (req, res) => {
     const fields = [];
     const values = [];
     let idx = 1;
-    const allowed = ['title', 'description', 'status', 'priority', 'assignee_id', 'reporter_id', 'labels', 'estimated_hours', 'actual_hours', 'due_date', 'sort_order', 'notes', 'sprint_id'];
+    const allowed = ['title', 'description', 'status', 'priority', 'assignee_id', 'reporter_id', 'labels', 'estimated_hours', 'actual_hours', 'due_date', 'sort_order', 'notes', 'spec', 'sprint_id'];
     for (const [key, val] of Object.entries(req.body)) {
       if (allowed.includes(key)) {
         fields.push(`${key} = $${idx}`);
