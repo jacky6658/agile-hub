@@ -26,7 +26,8 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
   const [filterPriority, setFilterPriority] = useState<string>('');
   const [filterAssignee, setFilterAssignee] = useState<string>('');
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
-  const [showOverview, setShowOverview] = useState(true);
+  const [showOverview, setShowOverview] = useState(window.innerWidth >= 768);
+  const [mobileColumn, setMobileColumn] = useState<TaskStatus>(TaskStatus.TODO);
 
   // Filter tasks
   const filteredTasks = tasks.filter(t => {
@@ -149,9 +150,110 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
         </div>
       </div>
 
-      {/* ===== 專案進度總覽 ===== */}
+      {/* ===== Mobile Tab Bar (md 以下顯示) — 固定在工具列下方 ===== */}
+      <div className="md:hidden flex border-b border-slate-200 bg-white overflow-x-auto shrink-0">
+        {KANBAN_COLUMNS.map(status => {
+          const config = TASK_STATUS_CONFIG[status];
+          const count = getColumnTasks(status).length;
+          const isActive = mobileColumn === status;
+          return (
+            <button
+              key={status}
+              onClick={() => setMobileColumn(status)}
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
+                isActive
+                  ? `${config.textColor} border-current`
+                  : 'text-slate-400 border-transparent hover:text-slate-600'
+              }`}
+            >
+              <div className={`w-2 h-2 rounded-full ${config.bgColor.replace('100', '500')}`} />
+              {config.label}
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${isActive ? config.bgColor + ' ' + config.textColor : 'bg-slate-100 text-slate-400'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ===== Mobile Single Column (md 以下顯示) ===== */}
+      <div className="md:hidden flex-1 overflow-y-auto p-3 space-y-3">
+        {/* 手機版進度摘要（精簡版） */}
+        {tasks.length > 0 && (
+          <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-3 border border-slate-200">
+            <button
+              onClick={() => setShowOverview(!showOverview)}
+              className="w-full flex items-center justify-between text-xs text-slate-500"
+            >
+              <span className="flex items-center gap-1.5">
+                <Target size={12} /> 專案進度
+                {(() => {
+                  const totalTasks = tasks.length;
+                  const doneTasks = tasks.filter(t => t.status === 'done').length;
+                  const taskProgress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+                  return (
+                    <span className={`font-bold px-1.5 py-0.5 rounded-full ${
+                      taskProgress >= 80 ? 'bg-green-100 text-green-700' :
+                      taskProgress >= 40 ? 'bg-amber-100 text-amber-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>{taskProgress}%</span>
+                  );
+                })()}
+              </span>
+              {showOverview ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+            {showOverview && (() => {
+              const totalTasks = tasks.length;
+              const doneTasks = tasks.filter(t => t.status === 'done').length;
+              const wipTasks = tasks.filter(t => t.status === 'in_progress' || t.status === 'review').length;
+              const todoTasks = tasks.filter(t => t.status === 'todo').length;
+              return (
+                <div className="mt-2 space-y-2">
+                  <div className="h-2.5 bg-slate-200 rounded-full overflow-hidden flex">
+                    <div className="bg-green-500" style={{ width: `${(doneTasks / Math.max(totalTasks, 1)) * 100}%` }} />
+                    <div className="bg-amber-400" style={{ width: `${(wipTasks / Math.max(totalTasks, 1)) * 100}%` }} />
+                    <div className="bg-blue-300" style={{ width: `${(todoTasks / Math.max(totalTasks, 1)) * 100}%` }} />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500" /> 完成 {doneTasks}</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" /> 進行 {wipTasks}</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-300" /> 待辦 {todoTasks}</span>
+                    <span className="font-medium text-slate-700">{totalTasks} 任務</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* 任務卡片列表 */}
+        {(() => {
+          const config = TASK_STATUS_CONFIG[mobileColumn];
+          const columnTasks = getColumnTasks(mobileColumn);
+          return (
+            <div className="space-y-2">
+              {columnTasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  members={members}
+                  onDragStart={handleDragStart}
+                  onClick={handleTaskClick}
+                />
+              ))}
+              {columnTasks.length === 0 && (
+                <div className="text-center py-12 text-sm text-slate-400">
+                  {config.label} 欄位目前沒有任務
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* ===== Desktop: 專案進度總覽 (md 以上顯示) ===== */}
       {(tasks.length > 0 || features.length > 0) && (
-        <div className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+        <div className="hidden md:block bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
           {/* 收合按鈕 */}
           <button
             onClick={() => setShowOverview(!showOverview)}
@@ -181,7 +283,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
             return (
               <div className="px-6 pb-4 space-y-4">
                 {/* 第一行：最終目標 + 整體進度 */}
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+                <div className="flex items-center gap-6">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1.5">
                       <Target size={16} className="text-blue-600" />
@@ -208,7 +310,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
                   </div>
 
                   {/* 快速統計卡片 */}
-                  <div className="flex gap-3 shrink-0 mt-3 md:mt-0">
+                  <div className="flex gap-3 shrink-0">
                     <div className="text-center px-3 py-2 rounded-lg bg-white border border-slate-200 min-w-[70px]">
                       <div className="text-lg font-bold text-slate-800">{totalTasks}</div>
                       <div className="text-xs text-slate-500">總任務</div>
@@ -228,7 +330,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
                 {features.length > 0 && (
                   <div>
                     <div className="text-xs font-semibold text-slate-600 mb-2">系統功能完成度</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       {/* 已完成 */}
                       <div className="bg-white rounded-lg border border-green-200 p-3">
                         <div className="flex items-center gap-1.5 mb-2">
@@ -287,9 +389,9 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
         </div>
       )}
 
-      {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto p-3 sm:p-6">
-        <div className="flex gap-3 sm:gap-4 min-w-max h-full">
+      {/* ===== Desktop Kanban Board (md 以上顯示) ===== */}
+      <div className="hidden md:block flex-1 overflow-x-auto p-6">
+        <div className="flex gap-4 min-w-max h-full">
           {KANBAN_COLUMNS.map(status => {
             const config = TASK_STATUS_CONFIG[status];
             const columnTasks = getColumnTasks(status);
@@ -297,7 +399,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
             return (
               <div
                 key={status}
-                className={`w-64 sm:w-72 flex flex-col rounded-xl bg-slate-50 kanban-column ${
+                className={`w-72 flex flex-col rounded-xl bg-slate-50 kanban-column ${
                   dragOverColumn === status ? 'kanban-drop-target' : ''
                 }`}
                 onDragOver={(e) => handleDragOver(e, status)}
