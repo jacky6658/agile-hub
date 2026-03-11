@@ -42,10 +42,33 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
-  const quickLogin = (quickEmail: string) => {
+  const quickLogin = async (quickEmail: string) => {
     setEmail(quickEmail);
     setPassword('agile123');
     setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: quickEmail, password: 'agile123' }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || '登入失敗');
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem('agile_hub_token', data.token);
+      onLogin(data.user, data.token);
+    } catch {
+      setError('無法連線到伺服器');
+      setLoading(false);
+    }
   };
 
   return (
@@ -156,7 +179,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-slate-600 text-center mt-2">預設密碼：agile123</p>
+            <p className="text-[10px] text-slate-600 text-center mt-2">點擊頭像即可快速登入</p>
           </div>
         </div>
 
