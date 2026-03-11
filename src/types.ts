@@ -158,6 +158,21 @@ export interface ArchSnapshot {
   snapshot_at: string;
 }
 
+// 任務活動紀錄
+export interface TaskActivity {
+  id: number;
+  task_id: number;
+  project_id: number;
+  actor_id?: number | null;
+  actor_name?: string;
+  member_name?: string;
+  action: string;
+  detail?: string;
+  old_value?: string;
+  new_value?: string;
+  created_at: string;
+}
+
 // 登入使用者
 export interface AuthUser {
   id: number;

@@ -157,7 +157,13 @@ router.post('/tasks', async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
       [project_id, sprint_id, title, description, status || 'todo', priority || 'P2', assignee_id, reporter_id, labels || [], estimated_hours, actual_hours, due_date, sort_order || 0, notes]
     );
-    res.status(201).json(rows[0]);
+    // 記錄建立活動
+    const task = rows[0];
+    await pool.query(
+      'INSERT INTO task_activities (task_id, project_id, actor_id, actor_name, action, detail) VALUES ($1,$2,$3,$4,$5,$6)',
+      [task.id, task.project_id, req.user?.id || null, req.user?.email || 'system', 'create', `建立任務：${task.title}`]
+    );
+    res.status(201).json(task);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -165,6 +171,11 @@ router.post('/tasks', async (req, res) => {
 
 router.patch('/tasks/:id', async (req, res) => {
   try {
+    // 先取得舊值（用於活動紀錄）
+    const { rows: oldRows } = await pool.query('SELECT * FROM ah_tasks WHERE id = $1', [req.params.id]);
+    if (!oldRows.length) return res.status(404).json({ error: 'Not found' });
+    const oldTask = oldRows[0];
+
     const fields = [];
     const values = [];
     let idx = 1;
@@ -180,7 +191,36 @@ router.patch('/tasks/:id', async (req, res) => {
     fields.push(`updated_at = NOW()`);
     values.push(req.params.id);
     const { rows } = await pool.query(`UPDATE ah_tasks SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`, values);
-    rows.length ? res.json(rows[0]) : res.status(404).json({ error: 'Not found' });
+
+    // 自動記錄活動
+    const actorId = req.user?.id || null;
+    const actorName = req.user?.email || 'system';
+    const trackFields = ['status', 'priority', 'assignee_id'];
+
+    for (const field of trackFields) {
+      if (req.body[field] !== undefined && String(req.body[field]) !== String(oldTask[field])) {
+        let action = 'update';
+        let detail = `${field}: ${oldTask[field]} → ${req.body[field]}`;
+
+        if (field === 'status') {
+          action = 'status_change';
+          detail = `狀態變更：${oldTask[field]} → ${req.body[field]}`;
+        } else if (field === 'assignee_id') {
+          action = req.body[field] ? 'assign' : 'unassign';
+          detail = req.body[field] ? `認領/指派任務` : `取消指派`;
+        } else if (field === 'priority') {
+          action = 'priority_change';
+          detail = `優先級變更：${oldTask[field]} → ${req.body[field]}`;
+        }
+
+        await pool.query(
+          'INSERT INTO task_activities (task_id, project_id, actor_id, actor_name, action, detail, old_value, new_value) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+          [req.params.id, oldTask.project_id, actorId, actorName, action, detail, String(oldTask[field] ?? ''), String(req.body[field] ?? '')]
+        );
+      }
+    }
+
+    res.json(rows[0]);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -453,6 +493,56 @@ router.post('/arch-snapshots', async (req, res) => {
     const { rows } = await pool.query(
       'INSERT INTO arch_snapshots (project_id, health_data, features_done, features_wip, features_todo, api_count, db_table_count, notes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
       [project_id, health_data, features_done, features_wip, features_todo, api_count, db_table_count, notes]
+    );
+    res.status(201).json(rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ==================== Task Activities ====================
+router.get('/activities', async (req, res) => {
+  try {
+    let query = `SELECT ta.*, m.display_name as member_name
+                 FROM task_activities ta
+                 LEFT JOIN ah_members m ON ta.actor_id = m.id`;
+    const conditions = [];
+    const values = [];
+    let idx = 1;
+
+    if (req.query.task_id) {
+      conditions.push(`ta.task_id = $${idx++}`);
+      values.push(req.query.task_id);
+    }
+    if (req.query.project_id) {
+      conditions.push(`ta.project_id = $${idx++}`);
+      values.push(req.query.project_id);
+    }
+    if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
+    query += ' ORDER BY ta.created_at DESC';
+    if (req.query.limit) {
+      query += ` LIMIT $${idx++}`;
+      values.push(parseInt(req.query.limit) || 50);
+    } else {
+      query += ' LIMIT 100';
+    }
+
+    const { rows } = await pool.query(query, values);
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// AI / 外部系統也能寫入活動紀錄
+router.post('/activities', async (req, res) => {
+  try {
+    const { task_id, project_id, actor_name, action, detail, old_value, new_value } = req.body;
+    if (!task_id || !action) return res.status(400).json({ error: 'task_id and action required' });
+    const { rows } = await pool.query(
+      `INSERT INTO task_activities (task_id, project_id, actor_id, actor_name, action, detail, old_value, new_value)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [task_id, project_id, req.user?.id || null, actor_name || req.user?.email || 'AI', action, detail, old_value, new_value]
     );
     res.status(201).json(rows[0]);
   } catch (e) {

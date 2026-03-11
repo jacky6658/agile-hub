@@ -123,6 +123,23 @@ export async function initDatabase() {
         notes TEXT,
         snapshot_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      -- 任務活動紀錄
+      CREATE TABLE IF NOT EXISTS task_activities (
+        id SERIAL PRIMARY KEY,
+        task_id INTEGER REFERENCES ah_tasks(id) ON DELETE CASCADE,
+        project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+        actor_id INTEGER REFERENCES ah_members(id) ON DELETE SET NULL,
+        actor_name VARCHAR(100),
+        action VARCHAR(50) NOT NULL,
+        detail TEXT,
+        old_value VARCHAR(200),
+        new_value VARCHAR(200),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_task_activities_task ON task_activities(task_id);
+      CREATE INDEX IF NOT EXISTS idx_task_activities_project ON task_activities(project_id);
     `);
 
     // Seed demo project if empty
