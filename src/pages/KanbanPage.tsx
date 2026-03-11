@@ -46,7 +46,13 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
   const handleDragStart = useCallback((e: React.DragEvent, task: Task) => {
     e.dataTransfer.setData('text/plain', String(task.id));
     e.dataTransfer.effectAllowed = 'move';
-    (e.target as HTMLElement).classList.add('task-card-dragging');
+    (e.target as HTMLElement).classList.add('opacity-50');
+  }, []);
+
+  const handleDragEnd = useCallback((e: React.DragEvent) => {
+    // Bug fix: 拖放結束時移除 opacity class
+    (e.target as HTMLElement).classList.remove('opacity-50');
+    setDragOverColumn(null);
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, status: string) => {
@@ -55,8 +61,12 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
     setDragOverColumn(status);
   }, []);
 
-  const handleDragLeave = useCallback(() => {
-    setDragOverColumn(null);
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    // Bug fix: 只在真正離開 column 時清除（忽略子元素觸發的 leave）
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+      setDragOverColumn(null);
+    }
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent, newStatus: TaskStatus) => {
@@ -73,7 +83,10 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
     setModalOpen(true);
   };
 
-  const handleNewTask = (_status?: TaskStatus) => {
+  const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus | null>(null);
+
+  const handleNewTask = (status?: TaskStatus) => {
+    setNewTaskStatus(status || null);
     setEditTask(null);
     setModalOpen(true);
   };
@@ -82,8 +95,10 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
     if (editTask) {
       onTaskUpdate(editTask.id, data);
     } else {
-      onTaskCreate({ ...data, project_id: project?.id, status: data.status || TaskStatus.TODO });
+      // Bug fix: 使用欄位「+」按鈕帶入的 status，而非一律預設 TODO
+      onTaskCreate({ ...data, project_id: project?.id, status: data.status || newTaskStatus || TaskStatus.TODO });
     }
+    setNewTaskStatus(null);
   };
 
   return (
@@ -238,6 +253,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
                   task={task}
                   members={members}
                   onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
                   onClick={handleTaskClick}
                 />
               ))}
@@ -399,8 +415,8 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
             return (
               <div
                 key={status}
-                className={`w-72 flex flex-col rounded-xl bg-slate-50 kanban-column ${
-                  dragOverColumn === status ? 'kanban-drop-target' : ''
+                className={`w-72 flex flex-col rounded-xl transition-colors ${
+                  dragOverColumn === status ? 'bg-blue-50 ring-2 ring-blue-300' : 'bg-slate-50'
                 }`}
                 onDragOver={(e) => handleDragOver(e, status)}
                 onDragLeave={handleDragLeave}
@@ -416,7 +432,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
                     </span>
                   </div>
                   <button
-                    onClick={() => { setEditTask(null); setModalOpen(true); }}
+                    onClick={() => handleNewTask(status)}
                     className="p-1 rounded hover:bg-slate-200 text-slate-400"
                   >
                     <Plus size={14} />
@@ -431,6 +447,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
                       task={task}
                       members={members}
                       onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
                       onClick={handleTaskClick}
                     />
                   ))}

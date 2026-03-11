@@ -237,7 +237,8 @@ router.patch('/tasks/:id', async (req, res) => {
 
 router.delete('/tasks/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM ah_tasks WHERE id = $1', [req.params.id]);
+    const result = await pool.query('DELETE FROM ah_tasks WHERE id = $1 RETURNING id', [req.params.id]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Task not found' });
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });

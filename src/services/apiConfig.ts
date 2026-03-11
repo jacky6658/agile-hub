@@ -43,6 +43,13 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     throw new Error(`API Error ${response.status}: ${errorText}`);
   }
 
+  // Bug fix: 檢查 Content-Type，避免 proxy/Cloudflare 回 HTML 導致 JSON.parse 崩潰
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await response.text();
+    throw new Error(`Expected JSON but got ${contentType}: ${text.substring(0, 200)}`);
+  }
+
   return response.json();
 }
 

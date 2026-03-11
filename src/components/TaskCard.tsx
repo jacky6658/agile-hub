@@ -6,18 +6,25 @@ interface TaskCardProps {
   task: Task;
   members: Member[];
   onDragStart: (e: React.DragEvent, task: Task) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
   onClick: (task: Task) => void;
 }
 
-export default function TaskCard({ task, members, onDragStart, onClick }: TaskCardProps) {
+const FALLBACK_PRIORITY = { label: '未設定', color: 'gray', icon: '⚪' };
+
+export default function TaskCard({ task, members, onDragStart, onDragEnd, onClick }: TaskCardProps) {
   const assignee = members.find(m => m.id === task.assignee_id);
-  const priorityConfig = PRIORITY_CONFIG[task.priority];
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date();
+  // Bug fix: priority 為 null/undefined 時不崩潰
+  const priorityConfig = PRIORITY_CONFIG[task.priority] || FALLBACK_PRIORITY;
+  // Bug fix: 使用 date-only 字串比較，避免 UTC 時區問題
+  const today = new Date().toISOString().split('T')[0];
+  const isOverdue = task.due_date && task.due_date < today;
 
   return (
     <div
       draggable
       onDragStart={(e) => onDragStart(e, task)}
+      onDragEnd={onDragEnd}
       onClick={() => onClick(task)}
       className="bg-white rounded-lg border border-slate-200 p-3 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all group"
     >

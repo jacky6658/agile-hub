@@ -237,7 +237,7 @@ export default function App() {
   const handleLogin = (user: AuthUser, _token: string) => {
     setAuthUser(user);
     setUseApi(true);
-    loadFromApi();
+    // Bug fix: 不在此直接呼叫 loadFromApi，讓 useEffect 統一觸發，避免 race condition
   };
 
   const handleLogout = () => {
@@ -245,14 +245,7 @@ export default function App() {
     localStorage.removeItem('agile_hub_token');
   };
 
-  // 嘗試連線後端（僅在已登入時載入資料）
-  useEffect(() => {
-    if (authUser && useApi) {
-      loadFromApi();
-    }
-  }, [authUser]);
-
-  const loadFromApi = async () => {
+  const loadFromApi = useCallback(async () => {
     setLoading(true);
     try {
       const pid = currentProject?.id || 1;
@@ -266,29 +259,37 @@ export default function App() {
         api.get<AIAutomation[]>(`/ai-automations?project_id=${pid}`),
         api.get<ArchSnapshot[]>(`/arch-snapshots?project_id=${pid}`),
       ]);
-      if (p.length) setProjects(p);
-      if (t.length) setTasks(t);
-      if (m.length) setMembers(m);
-      if (s.length) setSprints(s);
-      if (st.length) setStandups(st);
-      if (rf.length) setRoadmapFeatures(rf);
-      if (aa.length) setAutomations(aa);
-      if (as_.length) setArchSnapshots(as_);
+      // Bug fix: 無條件更新 state，避免 API 回空陣列時退回 Demo 資料
+      setProjects(p);
+      setTasks(t);
+      setMembers(m);
+      setSprints(s);
+      setStandups(st);
+      setRoadmapFeatures(rf);
+      setAutomations(aa);
+      setArchSnapshots(as_);
       if (p.length && !currentProject) setCurrentProject(p[0]);
     } catch (e) {
       console.error('Failed to load from API:', e);
     }
     setLoading(false);
-  };
+  }, [currentProject]);
+
+  // 嘗試連線後端（僅在已登入時載入資料）
+  // Bug fix: 加入 currentProject?.id 依賴，切換專案時自動 re-fetch
+  useEffect(() => {
+    if (authUser && useApi) {
+      loadFromApi();
+    }
+  }, [authUser, useApi, currentProject?.id, loadFromApi]);
 
   // ===== Task CRUD =====
   const nextId = useCallback((items: { id: number }[]) => {
     return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
   }, []);
 
-  const handleTaskCreate = useCallback((data: Partial<Task>) => {
-    const newTask: Task = {
-      id: nextId(tasks),
+  const handleTaskCreate = useCallback(async (data: Partial<Task>) => {
+    const taskData = {
       project_id: currentProject?.id || 1,
       title: data.title || '新任務',
       description: data.description,
@@ -300,15 +301,23 @@ export default function App() {
       estimated_hours: data.estimated_hours ?? null,
       actual_hours: data.actual_hours ?? null,
       due_date: data.due_date ?? null,
-      sort_order: tasks.length,
+      sort_order: data.sort_order ?? 0,
       sprint_id: data.sprint_id ?? null,
       notes: data.notes,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
     };
-    setTasks(prev => [...prev, newTask]);
-    if (useApi) api.post('/tasks', newTask).catch(console.error);
-  }, [tasks, currentProject, useApi, nextId]);
+    if (useApi) {
+      // Bug fix: 使用後端回傳的真實 ID，避免前後端 ID 不同步
+      try {
+        const created = await api.post<Task>('/tasks', taskData);
+        setTasks(prev => [...prev, created]);
+      } catch (e) {
+        console.error('Failed to create task:', e);
+      }
+    } else {
+      const newTask: Task = { ...taskData, id: nextId(tasks), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Task;
+      setTasks(prev => [...prev, newTask]);
+    }
+  }, [currentProject, useApi, tasks, nextId]);
 
   const handleTaskUpdate = useCallback((id: number, data: Partial<Task>) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...data, updated_at: new Date().toISOString() } : t));

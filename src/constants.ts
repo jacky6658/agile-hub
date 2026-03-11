@@ -39,8 +39,9 @@ export const TASK_STATUS_CONFIG = {
   }
 };
 
-// 看板欄位順序
+// 看板欄位順序（含 Backlog）
 export const KANBAN_COLUMNS = [
+  TaskStatus.BACKLOG,
   TaskStatus.TODO,
   TaskStatus.IN_PROGRESS,
   TaskStatus.REVIEW,

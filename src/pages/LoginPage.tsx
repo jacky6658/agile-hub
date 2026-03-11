@@ -36,6 +36,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
       // Save token
       localStorage.setItem('agile_hub_token', data.token);
+      setLoading(false); // Bug fix: 登入成功時也要重設 loading
       onLogin(data.user, data.token);
     } catch {
       setError('無法連線到伺服器');
