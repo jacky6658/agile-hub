@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import {
   KanbanSquare, Timer, Building2,
-  Users, Map, Bot, Settings, ChevronLeft, ChevronRight, Rocket, HelpCircle
+  Users, Map, Bot, Settings, ChevronLeft, ChevronRight, Rocket, HelpCircle,
+  LogOut
 } from 'lucide-react';
-import type { PageTab, Project } from '../types';
+import type { PageTab, Project, AuthUser } from '../types';
 
 interface SidebarProps {
   activeTab: PageTab;
@@ -12,6 +13,8 @@ interface SidebarProps {
   projects: Project[];
   onProjectChange: (project: Project) => void;
   onHelpOpen: () => void;
+  authUser?: AuthUser | null;
+  onLogout?: () => void;
 }
 
 const menuItems: { id: PageTab; label: string; icon: React.ReactNode }[] = [
@@ -24,7 +27,12 @@ const menuItems: { id: PageTab; label: string; icon: React.ReactNode }[] = [
   { id: 'settings', label: '設定', icon: <Settings size={20} /> },
 ];
 
-export default function Sidebar({ activeTab, onTabChange, currentProject, projects, onProjectChange, onHelpOpen }: SidebarProps) {
+const ROLE_COLORS: Record<string, string> = {
+  admin: 'bg-blue-500',
+  member: 'bg-emerald-500',
+};
+
+export default function Sidebar({ activeTab, onTabChange, currentProject, projects, onProjectChange, onHelpOpen, authUser, onLogout }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
 
@@ -98,21 +106,56 @@ export default function Sidebar({ activeTab, onTabChange, currentProject, projec
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="p-3 border-t border-slate-700">
-        <button
-          onClick={onHelpOpen}
-          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm ${collapsed ? 'justify-center' : ''}`}
-          title="使用指南"
-        >
-          <HelpCircle size={18} />
-          {!collapsed && <span>使用指南</span>}
-        </button>
-        {!collapsed && (
-          <div className="text-xs text-slate-600 text-center mt-2">
-            Agile Hub v1.0
+      {/* User Info + Footer */}
+      <div className="border-t border-slate-700">
+        {/* Current User */}
+        {authUser && (
+          <div className={`px-3 py-3 ${collapsed ? 'flex justify-center' : ''}`}>
+            {collapsed ? (
+              <div
+                className={`w-8 h-8 ${ROLE_COLORS[authUser.role] || 'bg-slate-500'} rounded-full flex items-center justify-center text-white text-xs font-bold cursor-pointer`}
+                title={`${authUser.display_name} (${authUser.role})`}
+                onClick={onLogout}
+              >
+                {authUser.display_name[0]}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 ${ROLE_COLORS[authUser.role] || 'bg-slate-500'} rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+                  {authUser.display_name[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-white truncate">{authUser.display_name}</div>
+                  <div className="text-xs text-slate-500 truncate">{authUser.email}</div>
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-slate-800 transition-colors"
+                  title="登出"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            )}
           </div>
         )}
+
+        {/* Help + Version */}
+        <div className="p-3 pt-0">
+          <button
+            onClick={onHelpOpen}
+            className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm ${collapsed ? 'justify-center' : ''}`}
+            title="使用指南"
+          >
+            <HelpCircle size={18} />
+            {!collapsed && <span>使用指南</span>}
+          </button>
+          {!collapsed && (
+            <div className="text-xs text-slate-600 text-center mt-2">
+              Agile Hub v1.0
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );

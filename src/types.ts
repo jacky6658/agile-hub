@@ -158,6 +158,15 @@ export interface ArchSnapshot {
   snapshot_at: string;
 }
 
+// 登入使用者
+export interface AuthUser {
+  id: number;
+  display_name: string;
+  email: string;
+  avatar?: string;
+  role: MemberRole;
+}
+
 // 頁面 Tab 類型
 export type PageTab =
   | 'kanban'

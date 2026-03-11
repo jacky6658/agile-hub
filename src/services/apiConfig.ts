@@ -7,6 +7,11 @@ interface RequestOptions {
   headers?: Record<string, string>;
 }
 
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem('agile_hub_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, headers = {} } = options;
 
@@ -14,6 +19,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     method,
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
       ...headers
     },
   };
@@ -24,6 +30,13 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 
   const url = `${API_BASE}/api${endpoint}`;
   const response = await fetch(url, config);
+
+  // Handle 401 — token expired or invalid
+  if (response.status === 401) {
+    localStorage.removeItem('agile_hub_token');
+    window.dispatchEvent(new CustomEvent('auth:logout'));
+    throw new Error('Session expired');
+  }
 
   if (!response.ok) {
     const errorText = await response.text();

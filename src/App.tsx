@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import HelpGuide from './components/HelpGuide';
+import LoginPage from './pages/LoginPage';
 import KanbanPage from './pages/KanbanPage';
 import SprintPage from './pages/SprintPage';
 import ArchDashboardPage from './pages/ArchDashboardPage';
@@ -8,7 +9,7 @@ import TeamPage from './pages/TeamPage';
 import RoadmapPage from './pages/RoadmapPage';
 import AIAutomationPage from './pages/AIAutomationPage';
 import SettingsPage from './pages/SettingsPage';
-import type { PageTab, Project, Task, Member, Sprint, StandupNote, RoadmapFeature, AIAutomation, ArchSnapshot } from './types';
+import type { PageTab, Project, Task, Member, Sprint, StandupNote, RoadmapFeature, AIAutomation, ArchSnapshot, AuthUser } from './types';
 import { api } from './services/apiConfig';
 
 // ===== Demo Data — 從 ARCHITECTURE.md 匯入 =====
@@ -23,7 +24,7 @@ const DEMO_PROJECT: Project = {
 const DEMO_MEMBERS: Member[] = [
   { id: 1, display_name: 'Jacky', email: 'jacky@step1ne.com', role: 'admin' as const, created_at: '2026-01-01' },
   { id: 2, display_name: 'Phoebe', email: 'phoebe@step1ne.com', role: 'member' as const, created_at: '2026-01-01' },
-  { id: 3, display_name: 'Jessie', email: 'jessie@step1ne.com', role: 'member' as const, created_at: '2026-01-15' },
+  { id: 3, display_name: 'Jim', email: 'jim@step1ne.com', role: 'member' as const, created_at: '2026-01-15' },
 ];
 
 // ===== 從 ARCHITECTURE.md 匯入的完整任務清單 =====
@@ -175,6 +176,10 @@ const DEMO_ARCH_SNAPSHOT: ArchSnapshot[] = [
 ];
 
 export default function App() {
+  // ===== Auth State =====
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authChecking, setAuthChecking] = useState(true);
+
   const [activeTab, setActiveTab] = useState<PageTab>('kanban');
   const [projects, setProjects] = useState<Project[]>([DEMO_PROJECT]);
   const [currentProject, setCurrentProject] = useState<Project | null>(DEMO_PROJECT);
@@ -189,35 +194,85 @@ export default function App() {
   const [useApi, setUseApi] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
-  // 嘗試連線後端
+  // ===== Check existing token on mount =====
   useEffect(() => {
-    const tryApi = async () => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('agile_hub_token');
+      if (!token) {
+        setAuthChecking(false);
+        return;
+      }
       try {
-        const res = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
+        const res = await fetch('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(3000),
+        });
         if (res.ok) {
+          const user = await res.json();
+          setAuthUser(user);
           setUseApi(true);
-          loadFromApi();
+        } else {
+          localStorage.removeItem('agile_hub_token');
         }
       } catch {
-        console.log('Backend offline, using demo data');
+        // Backend offline — allow demo mode without login
+        console.log('Backend offline, checking demo mode');
       }
+      setAuthChecking(false);
     };
-    tryApi();
+    checkAuth();
   }, []);
+
+  // Listen for forced logout (token expired)
+  useEffect(() => {
+    const handleLogout = () => {
+      setAuthUser(null);
+      localStorage.removeItem('agile_hub_token');
+    };
+    window.addEventListener('auth:logout', handleLogout);
+    return () => window.removeEventListener('auth:logout', handleLogout);
+  }, []);
+
+  const handleLogin = (user: AuthUser, _token: string) => {
+    setAuthUser(user);
+    setUseApi(true);
+    loadFromApi();
+  };
+
+  const handleLogout = () => {
+    setAuthUser(null);
+    localStorage.removeItem('agile_hub_token');
+  };
+
+  // 嘗試連線後端（僅在已登入時載入資料）
+  useEffect(() => {
+    if (authUser && useApi) {
+      loadFromApi();
+    }
+  }, [authUser]);
 
   const loadFromApi = async () => {
     setLoading(true);
     try {
-      const [p, t, m, s] = await Promise.all([
+      const pid = currentProject?.id || 1;
+      const [p, t, m, s, st, rf, aa, as_] = await Promise.all([
         api.get<Project[]>('/projects'),
-        api.get<Task[]>(`/tasks?project_id=${currentProject?.id || 1}`),
+        api.get<Task[]>(`/tasks?project_id=${pid}`),
         api.get<Member[]>('/members'),
-        api.get<Sprint[]>(`/sprints?project_id=${currentProject?.id || 1}`),
+        api.get<Sprint[]>(`/sprints?project_id=${pid}`),
+        api.get<StandupNote[]>(`/standups?project_id=${pid}`),
+        api.get<RoadmapFeature[]>(`/roadmap-features?project_id=${pid}`),
+        api.get<AIAutomation[]>(`/ai-automations?project_id=${pid}`),
+        api.get<ArchSnapshot[]>(`/arch-snapshots?project_id=${pid}`),
       ]);
       if (p.length) setProjects(p);
       if (t.length) setTasks(t);
       if (m.length) setMembers(m);
       if (s.length) setSprints(s);
+      if (st.length) setStandups(st);
+      if (rf.length) setRoadmapFeatures(rf);
+      if (aa.length) setAutomations(aa);
+      if (as_.length) setArchSnapshots(as_);
       if (p.length && !currentProject) setCurrentProject(p[0]);
     } catch (e) {
       console.error('Failed to load from API:', e);
@@ -469,6 +524,24 @@ export default function App() {
     }
   };
 
+  // ===== Loading / Auth Check =====
+  if (authChecking) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-900">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-400">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== Not Logged In → Show Login =====
+  if (!authUser) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  // ===== Logged In → Show App =====
   return (
     <div className="flex h-screen bg-slate-100">
       <Sidebar
@@ -478,6 +551,8 @@ export default function App() {
         projects={projects}
         onProjectChange={setCurrentProject}
         onHelpOpen={() => setShowHelp(true)}
+        authUser={authUser}
+        onLogout={handleLogout}
       />
       <main className="flex-1 overflow-hidden">
         {renderPage()}

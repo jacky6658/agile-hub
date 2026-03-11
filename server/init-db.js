@@ -1,4 +1,5 @@
 import pg from 'pg';
+import bcrypt from 'bcryptjs';
 const { Pool } = pg;
 
 const pool = new Pool({
@@ -30,6 +31,7 @@ export async function initDatabase() {
         email VARCHAR(200),
         avatar VARCHAR(500),
         role VARCHAR(20) DEFAULT 'member',
+        password_hash VARCHAR(200),
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -139,13 +141,14 @@ export async function initDatabase() {
         'active'
       ]);
 
-      // Seed default members
+      // Seed default members with default password 'agile123'
+      const defaultHash = await bcrypt.hash('agile123', 10);
       await client.query(`
-        INSERT INTO ah_members (display_name, email, role) VALUES
-        ('Jacky', 'jacky@step1ne.com', 'admin'),
-        ('Phoebe', 'phoebe@step1ne.com', 'member'),
-        ('Jessie', 'jessie@step1ne.com', 'member')
-      `);
+        INSERT INTO ah_members (display_name, email, role, password_hash) VALUES
+        ('Jacky', 'jacky@step1ne.com', 'admin', $1),
+        ('Phoebe', 'phoebe@step1ne.com', 'member', $1),
+        ('Jim', 'jim@step1ne.com', 'member', $1)
+      `, [defaultHash]);
 
       console.log('✅ Seeded demo project + members');
     }
