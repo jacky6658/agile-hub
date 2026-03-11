@@ -513,7 +513,7 @@ export default function App() {
       case 'arch-dashboard':
         return <ArchDashboardPage project={currentProject} snapshots={projectSnapshots} onCreateSnapshot={handleCreateSnapshot} onRefresh={loadFromApi} />;
       case 'team':
-        return <TeamPage project={currentProject} members={members} standups={projectStandups} onStandupCreate={handleStandupCreate} onMemberCreate={handleMemberCreate} />;
+        return <TeamPage project={currentProject} members={members} standups={projectStandups} onStandupCreate={handleStandupCreate} onMemberCreate={handleMemberCreate} authUser={authUser} onRefreshMembers={loadFromApi} />;
       case 'roadmap':
         return <RoadmapPage project={currentProject} features={projectFeatures} onFeatureCreate={handleFeatureCreate} onFeatureUpdate={handleFeatureUpdate} onFeatureDelete={handleFeatureDelete} />;
       case 'ai-automation':

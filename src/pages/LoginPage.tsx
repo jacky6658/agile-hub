@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import type { AuthUser } from '../types';
 
@@ -12,6 +12,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,33 +43,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
-  const quickLogin = async (quickEmail: string) => {
+  const quickLogin = (quickEmail: string) => {
     setEmail(quickEmail);
-    setPassword('agile123');
+    setPassword('');
     setError('');
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: quickEmail, password: 'agile123' }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || '登入失敗');
-        setLoading(false);
-        return;
-      }
-
-      localStorage.setItem('agile_hub_token', data.token);
-      onLogin(data.user, data.token);
-    } catch {
-      setError('無法連線到伺服器');
-      setLoading(false);
-    }
+    // Focus 密碼輸入框讓用戶直接打密碼
+    setTimeout(() => passwordRef.current?.focus(), 50);
   };
 
   return (
@@ -115,6 +95,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
+                  ref={passwordRef}
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -179,7 +160,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-slate-600 text-center mt-2">點擊頭像即可快速登入</p>
+            <p className="text-[10px] text-slate-600 text-center mt-2">點擊頭像填入 Email，再輸入密碼登入</p>
           </div>
         </div>
 

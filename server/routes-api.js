@@ -1,7 +1,16 @@
 import { Router } from 'express';
+import bcrypt from 'bcryptjs';
 import { pool } from './init-db.js';
 
 const router = Router();
+
+// Admin 權限中間件
+const adminOnly = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: '需要管理員權限' });
+  }
+  next();
+};
 
 // ==================== Health ====================
 router.get('/health', (req, res) => {
@@ -545,6 +554,74 @@ router.post('/activities', async (req, res) => {
       [task_id, project_id, req.user?.id || null, actor_name || req.user?.email || 'AI', action, detail, old_value, new_value]
     );
     res.status(201).json(rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ==================== Admin: 帳號管理 ====================
+
+// 建立新帳號（admin only）
+router.post('/admin/members', adminOnly, async (req, res) => {
+  try {
+    const { display_name, email, password, role } = req.body;
+
+    // 驗證必填欄位
+    if (!display_name?.trim() || !email?.trim() || !password) {
+      return res.status(400).json({ error: '顯示名稱、Email 和密碼為必填' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: '密碼至少 6 個字元' });
+    }
+
+    // 檢查 email 是否已存在
+    const { rows: existing } = await pool.query(
+      'SELECT id FROM ah_members WHERE LOWER(email) = LOWER($1)',
+      [email.trim()]
+    );
+    if (existing.length > 0) {
+      return res.status(409).json({ error: '此 Email 已被使用' });
+    }
+
+    // Hash 密碼並建立帳號
+    const password_hash = await bcrypt.hash(password, 10);
+    const { rows } = await pool.query(
+      'INSERT INTO ah_members (display_name, email, password_hash, role) VALUES ($1,$2,$3,$4) RETURNING id, display_name, email, role, created_at',
+      [display_name.trim(), email.trim().toLowerCase(), password_hash, role || 'member']
+    );
+
+    res.status(201).json(rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 修改其他用戶密碼（admin only）
+router.patch('/admin/members/:id/password', adminOnly, async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: '新密碼至少 6 個字元' });
+    }
+
+    // 確認用戶存在
+    const { rows: existing } = await pool.query(
+      'SELECT id, display_name FROM ah_members WHERE id = $1',
+      [req.params.id]
+    );
+    if (!existing.length) {
+      return res.status(404).json({ error: '找不到此用戶' });
+    }
+
+    // Hash 並更新密碼
+    const password_hash = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      'UPDATE ah_members SET password_hash = $1 WHERE id = $2',
+      [password_hash, req.params.id]
+    );
+
+    res.json({ success: true, message: `已重設 ${existing[0].display_name} 的密碼` });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
