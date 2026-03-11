@@ -137,7 +137,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           {/* Quick Login for Team */}
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-xs text-slate-500 text-center mb-3">快速登入（開發用）</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {[
                 { name: 'Jacky', email: 'jacky@step1ne.com', role: 'Admin', color: 'bg-blue-500' },
                 { name: 'Phoebe', email: 'phoebe@step1ne.com', role: 'Member', color: 'bg-emerald-500' },

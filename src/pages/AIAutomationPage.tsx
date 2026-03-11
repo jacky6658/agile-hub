@@ -42,8 +42,8 @@ export default function AIAutomationPage({ project, automations, onAutomationCre
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-        <h2 className="text-xl font-bold text-slate-800">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-800 truncate">
           {project?.icon} AI 自動化協作
         </h2>
         <button onClick={() => setShowNewForm(true)} className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
@@ -51,7 +51,7 @@ export default function AIAutomationPage({ project, automations, onAutomationCre
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4">
         {/* Health Check Card */}
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <div className="flex items-center justify-between mb-3">
@@ -68,7 +68,7 @@ export default function AIAutomationPage({ project, automations, onAutomationCre
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
               <div className="text-xs text-slate-500 mb-1">端點</div>
               <div className="text-sm text-slate-700 font-mono truncate">{project?.health_url || '未設定'}</div>
@@ -99,7 +99,7 @@ export default function AIAutomationPage({ project, automations, onAutomationCre
               <h3 className="font-semibold text-slate-800">新增自動化任務</h3>
               <button onClick={() => setShowNewForm(false)}><X size={16} className="text-slate-400" /></button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
                 placeholder="任務名稱 *"

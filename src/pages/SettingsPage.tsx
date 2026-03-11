@@ -30,19 +30,19 @@ export default function SettingsPage({ projects, currentProject, onProjectCreate
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-        <h2 className="text-xl font-bold text-slate-800">專案設定</h2>
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-800">專案設定</h2>
         <button onClick={() => setShowNewProject(true)} className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
           <Plus size={16} /> 新增專案
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-6">
         {/* New Project Form */}
         {showNewProject && (
           <div className="bg-white rounded-xl border border-blue-200 p-5 space-y-3">
             <h3 className="font-semibold text-slate-800">新增專案</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -84,7 +84,7 @@ export default function SettingsPage({ projects, currentProject, onProjectCreate
                 placeholder="GitHub Repo URL"
                 value={newProject.repo_url}
                 onChange={e => setNewProject(p => ({ ...p, repo_url: e.target.value }))}
-                className="col-span-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="sm:col-span-2 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex gap-2 justify-end">
@@ -131,7 +131,7 @@ export default function SettingsPage({ projects, currentProject, onProjectCreate
         {currentProject && (
           <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
             <h3 className="font-semibold text-slate-800">目前專案設定 — {currentProject.name}</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-slate-500">專案名稱</label>
                 <input

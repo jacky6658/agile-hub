@@ -193,6 +193,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [useApi, setUseApi] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // ===== Check existing token on mount =====
   useEffect(() => {
@@ -553,10 +554,22 @@ export default function App() {
         onHelpOpen={() => setShowHelp(true)}
         authUser={authUser}
         onLogout={handleLogout}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
-      <main className="flex-1 overflow-hidden">
-        {renderPage()}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile header bar */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900 text-white shrink-0">
+          <button onClick={() => setMobileSidebarOpen(true)} className="p-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span className="text-sm font-semibold truncate">{currentProject?.icon} {currentProject?.name || 'Agile Hub'}</span>
+          <div className="w-8" />
+        </div>
+        <main className="flex-1 overflow-hidden">
+          {renderPage()}
+        </main>
+      </div>
       <HelpGuide isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   );

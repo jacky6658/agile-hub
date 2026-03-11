@@ -88,10 +88,10 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-slate-800">
-            {project?.icon} {project?.name || 'Agile Hub'} — 看板
+          <h2 className="text-lg sm:text-xl font-bold text-slate-800 truncate">
+            <span className="hidden sm:inline">{project?.icon} {project?.name || 'Agile Hub'} — </span>看板
           </h2>
           <button
             onClick={onRefresh}
@@ -101,16 +101,16 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
           {/* Search */}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none">
             <Search size={16} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="搜尋任務..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+              className="pl-8 pr-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
             />
           </div>
 
@@ -118,7 +118,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
           <select
             value={filterPriority}
             onChange={e => setFilterPriority(e.target.value)}
-            className="px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 hidden sm:block"
           >
             <option value="">所有優先級</option>
             <option value="P0">P0 緊急</option>
@@ -131,7 +131,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
           <select
             value={filterAssignee}
             onChange={e => setFilterAssignee(e.target.value)}
-            className="px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 hidden sm:block"
           >
             <option value="">所有成員</option>
             {members.map(m => (
@@ -142,9 +142,9 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
           {/* New task */}
           <button
             onClick={() => handleNewTask()}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shrink-0"
           >
-            <Plus size={16} /> 新增任務
+            <Plus size={16} /> <span className="hidden sm:inline">新增任務</span><span className="sm:hidden">新增</span>
           </button>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
             return (
               <div className="px-6 pb-4 space-y-4">
                 {/* 第一行：最終目標 + 整體進度 */}
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1.5">
                       <Target size={16} className="text-blue-600" />
@@ -208,7 +208,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
                   </div>
 
                   {/* 快速統計卡片 */}
-                  <div className="flex gap-3 shrink-0">
+                  <div className="flex gap-3 shrink-0 mt-3 md:mt-0">
                     <div className="text-center px-3 py-2 rounded-lg bg-white border border-slate-200 min-w-[70px]">
                       <div className="text-lg font-bold text-slate-800">{totalTasks}</div>
                       <div className="text-xs text-slate-500">總任務</div>
@@ -228,7 +228,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
                 {features.length > 0 && (
                   <div>
                     <div className="text-xs font-semibold text-slate-600 mb-2">系統功能完成度</div>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {/* 已完成 */}
                       <div className="bg-white rounded-lg border border-green-200 p-3">
                         <div className="flex items-center gap-1.5 mb-2">
@@ -288,8 +288,8 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
       )}
 
       {/* Kanban Board */}
-      <div className="flex-1 overflow-x-auto p-6">
-        <div className="flex gap-4 min-w-max h-full">
+      <div className="flex-1 overflow-x-auto p-3 sm:p-6">
+        <div className="flex gap-3 sm:gap-4 min-w-max h-full">
           {KANBAN_COLUMNS.map(status => {
             const config = TASK_STATUS_CONFIG[status];
             const columnTasks = getColumnTasks(status);
@@ -297,7 +297,7 @@ export default function KanbanPage({ project, tasks, members, sprints, features 
             return (
               <div
                 key={status}
-                className={`w-72 flex flex-col rounded-xl bg-slate-50 kanban-column ${
+                className={`w-64 sm:w-72 flex flex-col rounded-xl bg-slate-50 kanban-column ${
                   dragOverColumn === status ? 'kanban-drop-target' : ''
                 }`}
                 onDragOver={(e) => handleDragOver(e, status)}

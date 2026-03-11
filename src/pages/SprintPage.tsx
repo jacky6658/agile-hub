@@ -39,8 +39,8 @@ export default function SprintPage({ project, tasks, members, sprints, onSprintC
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-        <h2 className="text-xl font-bold text-slate-800">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-800">
           {project?.icon} Sprint 規劃
         </h2>
         <button
@@ -51,12 +51,12 @@ export default function SprintPage({ project, tasks, members, sprints, onSprintC
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4">
         {/* New Sprint Form */}
         {showNewForm && (
           <div className="bg-white rounded-xl border border-blue-200 p-4 space-y-3">
             <h3 className="font-semibold text-slate-800">新建 Sprint</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
                 placeholder="Sprint 名稱"
@@ -102,33 +102,30 @@ export default function SprintPage({ project, tasks, members, sprints, onSprintC
             <div key={sprint.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               {/* Sprint Header */}
               <div
-                className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-50"
+                className="px-4 py-3 cursor-pointer hover:bg-slate-50"
                 onClick={() => setExpandedSprint(isExpanded ? null : sprint.id)}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg">{statusConfig?.icon}</span>
-                  <div>
-                    <h4 className="font-semibold text-slate-800">{sprint.name}</h4>
-                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
-                      {sprint.start_date && sprint.end_date && (
-                        <span className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          {sprint.start_date} ~ {sprint.end_date}
-                        </span>
-                      )}
-                      {sprint.goal && (
-                        <span className="flex items-center gap-1">
-                          <Target size={12} />
-                          {sprint.goal}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <h4 className="font-semibold text-slate-800 flex-1">{sprint.name}</h4>
+                  {isExpanded ? <ChevronUp size={16} className="text-slate-400 shrink-0" /> : <ChevronDown size={16} className="text-slate-400 shrink-0" />}
                 </div>
-
-                <div className="flex items-center gap-3">
-                  {/* Progress bar */}
-                  <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1.5 ml-9">
+                  {sprint.start_date && sprint.end_date && (
+                    <span className="flex items-center gap-1">
+                      <Calendar size={12} />
+                      {sprint.start_date} ~ {sprint.end_date}
+                    </span>
+                  )}
+                  {sprint.goal && (
+                    <span className="flex items-center gap-1 truncate max-w-[200px] sm:max-w-none">
+                      <Target size={12} className="shrink-0" />
+                      {sprint.goal}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mt-2 ml-9">
+                  <div className="w-20 sm:w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
                     <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
                   </div>
                   <span className="text-xs text-slate-500">{progress}%</span>
@@ -150,8 +147,6 @@ export default function SprintPage({ project, tasks, members, sprints, onSprintC
                       <CheckCircle2 size={12} /> 完成
                     </button>
                   )}
-
-                  {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
                 </div>
               </div>
 

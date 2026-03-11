@@ -39,7 +39,7 @@ export default function HelpGuide({ isOpen, onClose }: HelpGuideProps) {
             <strong>Agile Hub</strong> 是內部團隊共用的敏捷式管理平台，用來管理多個專案的開發流程。
             所有資料從各專案的 <code className="bg-slate-100 px-1 rounded text-xs">ARCHITECTURE.md</code> 自動匯入。
           </p>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
               <KanbanSquare size={14} className="text-blue-500" />
               <span>看板 — 拖拉式任務管理</span>
@@ -303,9 +303,9 @@ export default function HelpGuide({ isOpen, onClose }: HelpGuideProps) {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-[680px] max-h-[85vh] flex flex-col"
+        className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:w-[680px] max-h-[90vh] sm:max-h-[85vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

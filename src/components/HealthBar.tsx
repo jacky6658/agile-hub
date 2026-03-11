@@ -11,7 +11,7 @@ export default function HealthBar({ label, value, maxValue = 100, color }: Healt
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-slate-600 w-40 shrink-0">{label}</span>
+      <span className="text-xs sm:text-sm text-slate-600 w-28 sm:w-40 shrink-0 truncate">{label}</span>
       <div className="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor}`}

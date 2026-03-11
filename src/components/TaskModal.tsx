@@ -105,12 +105,12 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
-          <div className="flex items-center gap-4">
-            <h3 className="text-lg font-semibold text-slate-800">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-800">
               {task ? '編輯任務' : '新增任務'}
             </h3>
             {task && (
@@ -143,7 +143,7 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
         <div className="flex-1 overflow-y-auto">
           {activePanel === 'edit' ? (
             /* ===== Edit Panel ===== */
-            <div className="px-6 py-4 space-y-4">
+            <div className="px-4 sm:px-6 py-4 space-y-4">
               {/* Title */}
               <div>
                 <label className="text-sm font-medium text-slate-700">任務標題 *</label>
@@ -169,7 +169,7 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
               </div>
 
               {/* Status + Priority */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-slate-700">狀態</label>
                   <select
@@ -197,7 +197,7 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
               </div>
 
               {/* Assignee + Sprint */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-slate-700">負責人</label>
                   <select
@@ -227,7 +227,7 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
               </div>
 
               {/* Due date + Labels */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-slate-700">到期日</label>
                   <input
@@ -250,7 +250,7 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
               </div>
 
               {/* Estimated hours */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium text-slate-700">預估工時</label>
                   <input
@@ -289,7 +289,7 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
             </div>
           ) : (
             /* ===== Activity Panel ===== */
-            <div className="px-6 py-4">
+            <div className="px-4 sm:px-6 py-4">
               {/* Comment Input */}
               <div className="flex gap-2 mb-4">
                 <input
@@ -341,7 +341,7 @@ export default function TaskModal({ task, members, sprints, isOpen, onClose, onS
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl shrink-0">
           {task && onDelete ? (
             <button
               onClick={() => { onDelete(task.id); onClose(); }}

@@ -174,13 +174,13 @@ export default function RoadmapPage({ project, features, onFeatureCreate, onFeat
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold text-slate-800">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white gap-3">
+        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-800">
             {project?.icon} 產品路線圖
           </h2>
           {/* 統計 */}
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-2 sm:gap-3 text-xs">
             <span className="px-2 py-1 rounded-full bg-green-100 text-green-700">{totalDone} 已完成</span>
             <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-700">{totalWip} 進行中</span>
             <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-600">{totalPlanned} 計劃中</span>
@@ -215,7 +215,7 @@ export default function RoadmapPage({ project, features, onFeatureCreate, onFeat
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6">
         {/* New Feature Form */}
         {showNewForm && (
           <div className="bg-white rounded-xl border border-blue-200 p-4 mb-6 space-y-3">
@@ -223,7 +223,7 @@ export default function RoadmapPage({ project, features, onFeatureCreate, onFeat
               <h3 className="font-semibold text-slate-800">新增路線圖功能</h3>
               <button onClick={() => setShowNewForm(false)}><X size={16} className="text-slate-400" /></button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
                 placeholder="功能名稱 *"
@@ -279,10 +279,10 @@ export default function RoadmapPage({ project, features, onFeatureCreate, onFeat
                     <div className="flex-1 h-px bg-slate-200" />
                     <span className="text-xs text-slate-400">{qFeatures.length} features</span>
                   </div>
-                  <div className="ml-5 grid grid-cols-2 gap-3">
+                  <div className="ml-2 sm:ml-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {qFeatures.map(renderFeatureCard)}
                     {qFeatures.length === 0 && (
-                      <div className="col-span-2 text-sm text-slate-400 py-3 text-center">尚無規劃</div>
+                      <div className="sm:col-span-2 text-sm text-slate-400 py-3 text-center">尚無規劃</div>
                     )}
                   </div>
                 </div>
@@ -330,10 +330,10 @@ export default function RoadmapPage({ project, features, onFeatureCreate, onFeat
                             )}
                           </div>
 
-                          <div className="ml-5 grid grid-cols-2 gap-3">
+                          <div className="ml-2 sm:ml-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {mFeatures.map(renderFeatureCard)}
                             {mFeatures.length === 0 && (
-                              <div className="col-span-2 text-xs text-slate-300 py-1">—</div>
+                              <div className="sm:col-span-2 text-xs text-slate-300 py-1">—</div>
                             )}
                           </div>
                         </div>

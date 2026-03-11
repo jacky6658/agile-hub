@@ -55,8 +55,8 @@ export default function ArchDashboardPage({ project, snapshots }: ArchDashboardP
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-        <h2 className="text-xl font-bold text-slate-800">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-800 truncate">
           {project?.icon} 系統架構儀表板
         </h2>
         <div className="flex items-center gap-2">
@@ -66,9 +66,9 @@ export default function ArchDashboardPage({ project, snapshots }: ArchDashboardP
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6">
         {/* Top Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
           {/* Overall Health */}
           <div className="bg-white rounded-xl border border-slate-200 p-4">
             <div className="flex items-center justify-between mb-2">
@@ -121,7 +121,7 @@ export default function ArchDashboardPage({ project, snapshots }: ArchDashboardP
         </div>
 
         {/* Health Bars */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
           <div className="bg-white rounded-xl border border-slate-200 p-5">
             <h3 className="font-semibold text-slate-800 mb-4">模組健康度</h3>
             <div className="space-y-3">
@@ -136,7 +136,7 @@ export default function ArchDashboardPage({ project, snapshots }: ArchDashboardP
             <h3 className="font-semibold text-slate-800 mb-4">功能完成度</h3>
 
             {/* Donut-like stats */}
-            <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
               <div className="text-center p-3 rounded-lg bg-green-50">
                 <div className="text-2xl font-bold text-green-600">{featuresDone}</div>
                 <div className="text-xs text-green-600 mt-1">已完成</div>
@@ -175,7 +175,7 @@ export default function ArchDashboardPage({ project, snapshots }: ArchDashboardP
         </div>
 
         {/* Security Alerts + Tech Stack */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
           {/* Security Alerts */}
           <div className="bg-white rounded-xl border border-slate-200 p-5">
             <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
@@ -212,7 +212,7 @@ export default function ArchDashboardPage({ project, snapshots }: ArchDashboardP
               <Code size={18} className="text-blue-500" /> 技術棧 & 規模
             </h3>
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-2.5 rounded-lg bg-blue-50">
                   <div className="text-xs text-blue-500 mb-1">前端</div>
                   <div className="text-xs font-medium text-slate-700">React 19 + Vite 6 + TypeScript</div>

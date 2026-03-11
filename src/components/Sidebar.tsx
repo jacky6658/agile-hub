@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   KanbanSquare, Timer, Building2,
   Users, Map, Bot, Settings, ChevronLeft, ChevronRight, Rocket, HelpCircle,
-  LogOut
+  LogOut, X
 } from 'lucide-react';
 import type { PageTab, Project, AuthUser } from '../types';
 
@@ -15,6 +15,8 @@ interface SidebarProps {
   onHelpOpen: () => void;
   authUser?: AuthUser | null;
   onLogout?: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const menuItems: { id: PageTab; label: string; icon: React.ReactNode }[] = [
@@ -32,25 +34,31 @@ const ROLE_COLORS: Record<string, string> = {
   member: 'bg-emerald-500',
 };
 
-export default function Sidebar({ activeTab, onTabChange, currentProject, projects, onProjectChange, onHelpOpen, authUser, onLogout }: SidebarProps) {
+export default function Sidebar({ activeTab, onTabChange, currentProject, projects, onProjectChange, onHelpOpen, authUser, onLogout, mobileOpen, onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
 
-  return (
-    <aside className={`flex flex-col bg-slate-900 text-white transition-all duration-300 ${collapsed ? 'w-16' : 'w-60'} min-h-screen`}>
+  const handleTabChange = (tab: PageTab) => {
+    onTabChange(tab);
+    onMobileClose?.();
+  };
+
+  const sidebarContent = (
+    <aside className={`flex flex-col bg-slate-900 text-white h-full transition-all duration-300 ${collapsed && !mobileOpen ? 'w-16' : 'w-60'}`}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-700">
-        {!collapsed && (
+        {(!collapsed || mobileOpen) && (
           <div className="flex items-center gap-2">
             <Rocket size={24} className="text-blue-400" />
             <span className="font-bold text-lg">Agile Hub</span>
           </div>
         )}
+        {/* Desktop: collapse toggle / Mobile: close button */}
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => mobileOpen ? onMobileClose?.() : setCollapsed(!collapsed)}
           className="p-1 rounded hover:bg-slate-700 transition-colors"
         >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {mobileOpen ? <X size={18} /> : collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </div>
 
@@ -58,16 +66,16 @@ export default function Sidebar({ activeTab, onTabChange, currentProject, projec
       <div className="relative px-3 py-3 border-b border-slate-700">
         <button
           onClick={() => setShowProjectMenu(!showProjectMenu)}
-          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-slate-800 transition-colors text-sm ${collapsed ? 'justify-center' : ''}`}
+          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-slate-800 transition-colors text-sm ${collapsed && !mobileOpen ? 'justify-center' : ''}`}
         >
           <span className="text-lg">{currentProject?.icon || '📁'}</span>
-          {!collapsed && (
+          {(!collapsed || mobileOpen) && (
             <span className="truncate text-slate-300">
               {currentProject?.name || '選擇專案'}
             </span>
           )}
         </button>
-        {showProjectMenu && !collapsed && (
+        {showProjectMenu && (!collapsed || mobileOpen) && (
           <div className="absolute left-3 right-3 top-full mt-1 bg-slate-800 rounded-lg shadow-xl z-50 border border-slate-600">
             {projects.map(p => (
               <button
@@ -86,32 +94,32 @@ export default function Sidebar({ activeTab, onTabChange, currentProject, projec
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-2">
+      <nav className="flex-1 py-2 overflow-y-auto">
         {menuItems.map(item => (
           <button
             key={item.id}
-            onClick={() => onTabChange(item.id)}
+            onClick={() => handleTabChange(item.id)}
             className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-              collapsed ? 'justify-center' : ''
+              collapsed && !mobileOpen ? 'justify-center' : ''
             } ${
               activeTab === item.id
                 ? 'bg-blue-600/20 text-blue-400 border-r-2 border-blue-400'
                 : 'text-slate-400 hover:bg-slate-800 hover:text-white'
             }`}
-            title={collapsed ? item.label : undefined}
+            title={collapsed && !mobileOpen ? item.label : undefined}
           >
             {item.icon}
-            {!collapsed && <span>{item.label}</span>}
+            {(!collapsed || mobileOpen) && <span>{item.label}</span>}
           </button>
         ))}
       </nav>
 
       {/* User Info + Footer */}
-      <div className="border-t border-slate-700">
+      <div className="border-t border-slate-700 shrink-0">
         {/* Current User */}
         {authUser && (
-          <div className={`px-3 py-3 ${collapsed ? 'flex justify-center' : ''}`}>
-            {collapsed ? (
+          <div className={`px-3 py-3 ${collapsed && !mobileOpen ? 'flex justify-center' : ''}`}>
+            {collapsed && !mobileOpen ? (
               <div
                 className={`w-8 h-8 ${ROLE_COLORS[authUser.role] || 'bg-slate-500'} rounded-full flex items-center justify-center text-white text-xs font-bold cursor-pointer`}
                 title={`${authUser.display_name} (${authUser.role})`}
@@ -143,14 +151,14 @@ export default function Sidebar({ activeTab, onTabChange, currentProject, projec
         {/* Help + Version */}
         <div className="p-3 pt-0">
           <button
-            onClick={onHelpOpen}
-            className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm ${collapsed ? 'justify-center' : ''}`}
+            onClick={() => { onHelpOpen(); onMobileClose?.(); }}
+            className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm ${collapsed && !mobileOpen ? 'justify-center' : ''}`}
             title="使用指南"
           >
             <HelpCircle size={18} />
-            {!collapsed && <span>使用指南</span>}
+            {(!collapsed || mobileOpen) && <span>使用指南</span>}
           </button>
-          {!collapsed && (
+          {(!collapsed || mobileOpen) && (
             <div className="text-xs text-slate-600 text-center mt-2">
               Agile Hub v1.0
             </div>
@@ -158,5 +166,24 @@ export default function Sidebar({ activeTab, onTabChange, currentProject, projec
         </div>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar — hidden on mobile */}
+      <div className="hidden md:flex h-full shrink-0">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile overlay drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={onMobileClose} />
+          <div className="absolute left-0 top-0 bottom-0 w-60 z-10">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

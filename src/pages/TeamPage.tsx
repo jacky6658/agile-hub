@@ -43,8 +43,8 @@ export default function TeamPage({ project, members, standups, onStandupCreate, 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-        <h2 className="text-xl font-bold text-slate-800">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-800">
           {project?.icon} 團隊協作
         </h2>
         <div className="flex items-center gap-2">
@@ -54,10 +54,10 @@ export default function TeamPage({ project, members, standups, onStandupCreate, 
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-3 gap-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           {/* Members Panel */}
-          <div className="col-span-1">
+          <div className="md:col-span-1">
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
                 <User size={16} /> 團隊成員
@@ -103,7 +103,7 @@ export default function TeamPage({ project, members, standups, onStandupCreate, 
           </div>
 
           {/* Standup Notes */}
-          <div className="col-span-2">
+          <div className="md:col-span-2">
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               {/* Date Navigator */}
               <div className="flex items-center justify-between mb-4">
