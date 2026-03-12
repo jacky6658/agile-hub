@@ -2,15 +2,14 @@
 -- PostgreSQL database dump
 --
 
-\restrict eVHm3ROPLFAmLBLM5iq4lEyvidvucHrVRIwIThEId7oKPI0ePyx5gzJfoHhfbsJ
+\restrict tlOw0beqVhrfHQkzYYU3EGu36ShDaWutu3IMK3tIEp8SP94bDyiTLBftyjuargg
 
 -- Dumped from database version 16.13 (Homebrew)
--- Dumped by pg_dump version 18.1
+-- Dumped by pg_dump version 16.13 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -860,5 +859,5 @@ ALTER TABLE ONLY public.task_activities
 -- PostgreSQL database dump complete
 --
 
-\unrestrict eVHm3ROPLFAmLBLM5iq4lEyvidvucHrVRIwIThEId7oKPI0ePyx5gzJfoHhfbsJ
+\unrestrict tlOw0beqVhrfHQkzYYU3EGu36ShDaWutu3IMK3tIEp8SP94bDyiTLBftyjuargg
 
