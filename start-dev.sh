@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /Users/user/Downloads/agile-hub
+cd /Users/step1ne/Downloads/agile-hub
 exec npx vite --port "${PORT:-3000}"

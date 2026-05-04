@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: parseInt(process.env.PORT || '3000'),
-    allowedHosts: ['.trycloudflare.com'],
+    allowedHosts: ['.trycloudflare.com', '.step1ne.com'],
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
